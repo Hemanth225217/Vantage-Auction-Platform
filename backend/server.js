@@ -13,6 +13,8 @@ const Auction = require('./models/Auction');
 const authRoutes = require('./routes/authRoutes');
 const auctionRoutes = require('./routes/auctionRoutes');
 const bidRoutes = require('./routes/bidRoutes');
+const aiRoutes = require('./routes/aiRoutes');
+const priceModel = require('./ml/modelStore');
 
 connectDB();
 
@@ -45,6 +47,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/auctions', auctionRoutes);
 app.use('/api/bids', bidRoutes);
+app.use('/api/ai', aiRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
@@ -82,6 +85,9 @@ const closeExpiredAuctions = async () => {
         finalPrice: auction.currentPrice,
       });
     }
+
+    // New sales history: retrain the price model on next request
+    if (expired.length) priceModel.invalidate();
   } catch (err) {
     console.error('Error closing expired auctions:', err.message);
   }

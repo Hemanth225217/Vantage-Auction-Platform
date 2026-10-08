@@ -17,6 +17,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import CountdownTimer from '../components/CountdownTimer';
 import Loader from '../components/Loader';
+import PriceEstimate from '../components/PriceEstimate';
 
 const formatCurrency = (n) =>
   new Intl.NumberFormat('en-US', {
@@ -51,6 +52,8 @@ const AuctionDetail = () => {
   const [placingBid, setPlacingBid] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
   const [ended, setEnded] = useState(false);
+  const [estimate, setEstimate] = useState(null);
+  const [estimateError, setEstimateError] = useState('');
   const bidListRef = useRef(null);
 
   const fetchAuction = async () => {
@@ -73,6 +76,17 @@ const AuctionDetail = () => {
   useEffect(() => {
     fetchAuction();
     // eslint-disable-next-line
+  }, [id]);
+
+  useEffect(() => {
+    setEstimate(null);
+    setEstimateError('');
+    api
+      .get(`/ai/predict-price/${id}`)
+      .then((res) => setEstimate(res.data.data))
+      .catch((err) =>
+        setEstimateError(err.response?.data?.message || 'AI price estimate unavailable')
+      );
   }, [id]);
 
   useEffect(() => {
@@ -311,6 +325,21 @@ const AuctionDetail = () => {
                   )}
                 </div>
               </div>
+
+              {!ended && (estimate || estimateError) && (
+                <div className="mt-5">
+                  <PriceEstimate
+                    estimate={
+                      estimate && {
+                        ...estimate,
+                        aboveEstimate: auction.currentPrice > estimate.high,
+                      }
+                    }
+                    error={estimateError}
+                    label="AI Predicted Final Price"
+                  />
+                </div>
+              )}
 
               <div className="my-5 border-t border-white/5" />
 

@@ -14,6 +14,7 @@ A full-stack, production-ready online auction platform with **live real-time bid
 - **Full auction lifecycle** — create, edit (before any bids), cancel/delete, browse, search, filter by category/price/status, sort, paginate
 - **Dashboard** — "My Auctions" (as a seller) and "My Bids" (as a bidder) with live status (winning/outbid/won/lost)
 - **Polished, premium UI** — dark "auction house" theme (ink + gold palette), Playfair Display + Inter typography, smooth Framer Motion animations, fully responsive
+- **AI price predictor** — estimates an item's final selling price (with an 80% range and the top factors behind it) when you create a listing and on every live auction, learned from the platform's own completed sales
 - **Seed script** — instantly populate the database with 5 demo users and 10 realistic auctions (with bid history) across every category, so the app looks alive from the first run
 
 ---
@@ -199,6 +200,17 @@ Or just click **"Join Now"** to create your own account.
 4. A background interval on the server checks every 15 seconds for auctions whose end time has passed, marks them `ended`, and notifies everyone watching.
 
 ---
+
+## 🤖 How the AI Price Predictor Works
+
+- **Model:** ridge regression written in plain JavaScript (`backend/ml/pricePredictor.js`). It predicts `log(final price / starting price)`, which is how far above its starting price an item usually sells.
+- **Features:** starting price, bid increment relative to price, auction duration, description length, image count, category and condition.
+- **Training data:** every *ended* auction that received bids. The model retrains automatically every 10 minutes and whenever auctions close. Predictions are disabled until there are at least 20 completed sales.
+- **Accuracy:** measured with 5-fold cross-validation, so the reported error comes from sales the model didn't train on. The 80% price range is based on that held-out error.
+- **Explainability:** each prediction lists the factors that raised or lowered its price compared with an average listing.
+- **API:** `POST /api/ai/predict-price` (draft listing, signed in), `GET /api/ai/predict-price/:auctionId` (a live auction), `GET /api/ai/model` (status and accuracy).
+
+> ⚠️ **Demo data note:** `npm run seed` adds 150 **simulated** past sales (`backend/ml/simulatedHistory.js`) so the model has something to learn from. On that data it gets ~12% average error, compared with ~16% for always guessing the average markup. That number only shows it can learn the simulated pattern. Accuracy on real listings needs real sales history.
 
 ## 🛠️ Useful Scripts
 
