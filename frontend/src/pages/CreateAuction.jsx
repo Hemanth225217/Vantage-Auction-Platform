@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { ImagePlus, X, Gavel } from 'lucide-react';
+import { ImagePlus, X, Gavel, Sparkles } from 'lucide-react';
 import api from '../api/axios';
+import PriceEstimate from '../components/PriceEstimate';
 
 const CATEGORIES = [
   'Art',
@@ -29,6 +30,9 @@ const CreateAuction = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
+  const [estimate, setEstimate] = useState(null);
+  const [estimating, setEstimating] = useState(false);
+  const [estimateError, setEstimateError] = useState('');
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -49,6 +53,30 @@ const CreateAuction = () => {
 
   const removeImage = (idx) => {
     setForm((f) => ({ ...f, images: f.images.filter((_, i) => i !== idx) }));
+  };
+
+  const handleEstimate = async () => {
+    if (!form.startingPrice) {
+      toast.error('Enter a starting price first');
+      return;
+    }
+
+    setEstimating(true);
+    setEstimateError('');
+    try {
+      const res = await api.post('/ai/predict-price', {
+        ...form,
+        startingPrice: Number(form.startingPrice),
+        bidIncrement: Number(form.bidIncrement),
+        endTime: new Date(form.endTime).toISOString(),
+      });
+      setEstimate(res.data.data);
+    } catch (err) {
+      setEstimate(null);
+      setEstimateError(err.response?.data?.message || 'Could not estimate a price');
+    } finally {
+      setEstimating(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -255,6 +283,24 @@ const CreateAuction = () => {
                 className="input-field"
               />
             </div>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={handleEstimate}
+              disabled={estimating}
+              className="btn-secondary w-full"
+            >
+              <Sparkles size={15} className="text-gold-400" />
+              {estimate ? 'Re-estimate Final Price' : 'Get AI Price Estimate'}
+            </button>
+            <PriceEstimate
+              estimate={estimate}
+              loading={estimating}
+              error={estimateError}
+              label="Predicted Final Price"
+            />
           </div>
 
           <button type="submit" disabled={loading} className="btn-primary w-full !py-3 text-base">

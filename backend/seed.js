@@ -4,6 +4,7 @@ const connectDB = require('./config/db');
 const User = require('./models/User');
 const Auction = require('./models/Auction');
 const Bid = require('./models/Bid');
+const { HISTORY_SIZE, buildSalesHistory } = require('./ml/simulatedHistory');
 
 const daysFromNow = (d) => new Date(Date.now() + d * 24 * 60 * 60 * 1000);
 const hoursFromNow = (h) => new Date(Date.now() + h * 60 * 60 * 1000);
@@ -190,6 +191,16 @@ const run = async () => {
 
     await auction.save();
   }
+
+  console.log(`📈 Adding ${HISTORY_SIZE} simulated past sales for the AI price predictor...`);
+  const history = buildSalesHistory([ava, marcus, isabella], [demo, ava, marcus, isabella]);
+  for (const doc of history.auctions) {
+    const err = new Auction(doc).validateSync();
+    if (err) throw err;
+  }
+  // Raw inserts so the backdated createdAt/updatedAt values are kept
+  await Auction.collection.insertMany(history.auctions);
+  await Bid.collection.insertMany(history.bids);
 
   console.log('✅ Seed complete!');
   console.log('----------------------------------------');
