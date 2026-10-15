@@ -1,6 +1,8 @@
 # 🔨 Vantage Auctions — Online Auction Platform
 
-A full-stack, production-ready online auction platform with **live real-time bidding**.
+A full-stack online auction platform with **live real-time bidding**.
+
+[![CI](https://github.com/Hemanth225217/Vantage-Auction-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/Hemanth225217/Vantage-Auction-Platform/actions/workflows/ci.yml)
 
 **Stack:** React.js (Vite) · Node.js · Express.js · MongoDB · Socket.io · JWT Authentication · Tailwind CSS
 
@@ -13,7 +15,7 @@ A full-stack, production-ready online auction platform with **live real-time bid
 - **Auto-closing auctions** — a background job automatically marks auctions as "ended" the moment their timer expires, and broadcasts the result live
 - **Full auction lifecycle** — create, edit (before any bids), cancel/delete, browse, search, filter by category/price/status, sort, paginate
 - **Dashboard** — "My Auctions" (as a seller) and "My Bids" (as a bidder) with live status (winning/outbid/won/lost)
-- **Polished, premium UI** — dark "auction house" theme (ink + gold palette), Playfair Display + Inter typography, smooth Framer Motion animations, fully responsive
+- **UI** — dark "auction house" theme (ink + gold palette), Playfair Display + Inter typography, smooth Framer Motion animations, fully responsive
 - **AI price predictor** — estimates an item's final selling price (with an 80% range and the top factors behind it) when you create a listing and on every live auction, learned from the platform's own completed sales
 - **Seed script** — instantly populate the database with 5 demo users and 10 realistic auctions (with bid history) across every category, so the app looks alive from the first run
 
@@ -220,6 +222,7 @@ Or just click **"Join Now"** to create your own account.
 | `npm run dev` | Start the API with auto-reload (nodemon) |
 | `npm start` | Start the API in production mode |
 | `npm run seed` | Wipe and repopulate the database with demo data |
+| `npm test` | Run the price-predictor unit tests (Node's built-in test runner, no database needed) |
 
 **Frontend** (`cd frontend`)
 | Command | Description |
